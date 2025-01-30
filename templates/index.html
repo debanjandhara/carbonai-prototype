@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Carbon Score Analysis</title>
+    <script>
+        function updateAreaLabel(value) {
+            document.getElementById('areaLabel').innerText = value + " sq. meters";
+        }
+    </script>
+</head>
+<body>
+    <h1>Carbon Score Analysis</h1>
+    <form action="/calculate" method="post">
+        Latitude: <input type="text" name="lat" required>
+        Longitude: <input type="text" name="lon" required>
+        <label for="area">Area (Square Meters): <span id="areaLabel">1000 sq. meters</span></label>
+        <input type="range" id="area" name="area" min="100" max="10000" step="100" value="1000" oninput="updateAreaLabel(this.value)">
+        <button type="submit">Calculate</button>
+    </form>
+
+    <h2>Logs</h2>
+    <pre id="logs"></pre>
+
+    <script>
+        let socket = new WebSocket("ws://localhost:8000/ws");
+        socket.onmessage = function(event) {
+            let logs = document.getElementById("logs");
+            let lines = logs.innerHTML.split("\n");
+            if (lines.length >= 6) {
+                lines.shift();
+            }
+            lines.push(event.data);
+            logs.innerHTML = lines.join("\n");
+        };
+    </script>
+
+    {% if scores %}
+    <h2>Results:</h2>
+    {% for year, score in scores %}
+        <p>Year: {{ year }}, Carbon Score: {{ score }}</p>
+        <img src="{{ images[loop.index0] }}" width="300px">
+    {% endfor %}
+    {% endif %}
+
+</body>
+</html>
